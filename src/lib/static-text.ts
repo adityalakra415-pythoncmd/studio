@@ -57,4 +57,11 @@ export const staticText = {
     submit: "Submit",
     translating: "Translating...",
   },
+  askAi: {
+    title: "Ask AI",
+    description: "Your personal AI tutor. Ask anything!",
+    placeholder: "Type your question here...",
+    ask: "Ask",
+    asking: "Asking...",
+  },
 };
