@@ -3,6 +3,7 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { ThemeSwitcher } from "@/components/theme/theme-switcher";
 
 export function Header() {
   return (
@@ -14,9 +15,12 @@ export function Header() {
         <div className="hidden md:block">
           <h1 className="text-2xl font-bold">Welcome Back, Student!</h1>
         </div>
-        <div className="relative w-full max-w-md ml-auto">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search topics, quizzes..." className="pl-9" />
+        <div className="flex items-center gap-2 ml-auto">
+          <div className="relative w-full max-w-xs sm:max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Search topics, quizzes..." className="pl-9" />
+          </div>
+          <ThemeSwitcher />
         </div>
       </div>
     </header>
