@@ -1,3 +1,6 @@
+
+"use client";
+
 import {
   Sidebar,
   SidebarContent,
@@ -33,79 +36,88 @@ import { ContentUpload } from '@/components/dashboard/content-upload';
 import { StudyPlan } from '@/components/dashboard/study-plan';
 import { QuizSection } from '@/components/dashboard/quiz-section';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useEffect, useState } from 'react';
 
 export default function DashboardPage() {
   const userAvatar = PlaceHolderImages.find((p) => p.id === 'user-avatar');
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
 
   return (
     <SidebarProvider>
       <div className="flex min-h-screen bg-background">
-        <Sidebar className="border-r bg-sidebar">
-          <SidebarHeader>
-            <div className="flex items-center gap-2.5">
-              <Logo className="w-8 h-8 text-primary" />
-              <h1 className="text-xl font-bold">DragonAI</h1>
-            </div>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton isActive>
-                  <LayoutDashboard />
-                  <span>Dashboard</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton>
-                  <BookOpenCheck />
-                  <span>Study Plan</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton>
-                  <FileQuestion />
-                  <span>Quizzes</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarContent>
-          <SidebarFooter>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="justify-start w-full gap-2 p-2 h-14"
-                >
-                  <Avatar>
-                    {userAvatar && <AvatarImage src={userAvatar.imageUrl} alt="User Avatar" data-ai-hint={userAvatar.imageHint} />}
-                    <AvatarFallback>S</AvatarFallback>
-                  </Avatar>
-                  <div className="text-left">
-                    <p className="font-semibold">Student</p>
-                    <p className="text-xs text-muted-foreground">
-                      student@email.com
-                    </p>
-                  </div>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="mb-2 w-56">
-                <DropdownMenuItem>
-                  <User className="w-4 h-4 mr-2" />
-                  Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="w-4 h-4 mr-2" />
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarFooter>
-        </Sidebar>
+        {isClient && (
+          <Sidebar className="border-r bg-sidebar">
+            <SidebarHeader>
+              <div className="flex items-center gap-2.5">
+                <Logo className="w-8 h-8 text-primary" />
+                <h1 className="text-xl font-bold">DragonAI</h1>
+              </div>
+            </SidebarHeader>
+            <SidebarContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton isActive>
+                    <LayoutDashboard />
+                    <span>Dashboard</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton>
+                    <BookOpenCheck />
+                    <span>Study Plan</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton>
+                    <FileQuestion />
+                    <span>Quizzes</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarContent>
+            <SidebarFooter>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="justify-start w-full gap-2 p-2 h-14"
+                  >
+                    <Avatar>
+                      {userAvatar && <AvatarImage src={userAvatar.imageUrl} alt="User Avatar" data-ai-hint={userAvatar.imageHint} />}
+                      <AvatarFallback>S</AvatarFallback>
+                    </Avatar>
+                    <div className="text-left">
+                      <p className="font-semibold">Student</p>
+                      <p className="text-xs text-muted-foreground">
+                        student@email.com
+                      </p>
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="mb-2 w-56">
+                  <DropdownMenuItem>
+                    <User className="w-4 h-4 mr-2" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Settings className="w-4 h-4 mr-2" />
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </SidebarFooter>
+          </Sidebar>
+        )}
         <SidebarInset>
           <Header />
           <main className="p-4 sm:p-6 lg:p-8">
