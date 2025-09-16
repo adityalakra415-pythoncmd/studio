@@ -1,3 +1,4 @@
+
 "use client";
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -12,11 +13,13 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-10 flex items-center h-16 px-4 bg-background/80 backdrop-blur-sm border-b sm:px-6 lg:px-8">
-      <div className="md:hidden">
-        <SidebarTrigger />
+      <div className="flex items-center gap-2">
+        <SidebarTrigger className="md:hidden" />
+        <h1 className="text-2xl font-bold md:hidden">DragonAI</h1>
       </div>
       <div className="flex items-center justify-between w-full gap-4">
-        <div className="hidden md:block">
+        <div className="hidden md:flex md:items-center md:gap-2">
+          <SidebarTrigger />
           <h1 className="text-2xl font-bold">{t('header').welcome}</h1>
         </div>
         <div className="flex items-center gap-2 ml-auto">
@@ -31,3 +34,4 @@ export function Header() {
     </header>
   );
 }
+

@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -63,7 +64,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <Link href="/">
-                      <SidebarMenuButton isActive={pathname === '/'}>
+                      <SidebarMenuButton tooltip={t('sidebar').dashboard} isActive={pathname === '/'}>
                         <LayoutDashboard />
                         <span>{t('sidebar').dashboard}</span>
                       </SidebarMenuButton>
@@ -71,7 +72,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <Link href="/study-plan">
-                      <SidebarMenuButton isActive={pathname === '/study-plan'}>
+                      <SidebarMenuButton tooltip={t('sidebar').studyPlan} isActive={pathname === '/study-plan' || pathname.startsWith('/study/')}>
                         <BookOpenCheck />
                         <span>{t('sidebar').studyPlan}</span>
                       </SidebarMenuButton>
@@ -79,7 +80,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <Link href="/quizzes">
-                      <SidebarMenuButton isActive={pathname === '/quizzes'}>
+                      <SidebarMenuButton tooltip={t('sidebar').quizzes} isActive={pathname === '/quizzes'}>
                         <FileQuestion />
                         <span>{t('sidebar').quizzes}</span>
                       </SidebarMenuButton>
@@ -98,7 +99,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                         {userAvatar && <AvatarImage src={userAvatar.imageUrl} alt="User Avatar" data-ai-hint={userAvatar.imageHint} />}
                         <AvatarFallback>S</AvatarFallback>
                       </Avatar>
-                      <div className="text-left">
+                      <div className="text-left group-data-[collapsible=icon]:hidden">
                         <p className="font-semibold">{t('sidebar').student}</p>
                         <p className="text-xs text-muted-foreground">
                           student@email.com
