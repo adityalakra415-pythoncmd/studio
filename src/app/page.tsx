@@ -14,10 +14,12 @@ export default function DashboardPage() {
         <div className="lg:col-span-8">
           <ProgressOverview />
         </div>
-        <div className="lg:col-span-4 row-span-2">
-          <div className="flex flex-col gap-6">
+        <div className="lg:col-span-4 lg:row-span-2">
+          <div className="flex flex-col gap-6 lg:h-full">
             <ContentUpload />
-            <AskAi />
+            <div className="flex-grow">
+              <AskAi />
+            </div>
           </div>
         </div>
         <div className="lg:col-span-8">

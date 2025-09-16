@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,6 +41,15 @@ export default function StudyTopicPage() {
   const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
   const [generatedQuiz, setGeneratedQuiz] = useState<QuizQuestion[] | null>(null);
 
+  useEffect(() => {
+    if (topic) {
+      setMessages([{
+        role: 'assistant',
+        content: `Hello! Let's dive into **${topic.topic}**. What would you like to know? Ask me anything to prepare for your quiz.`
+      }]);
+    }
+  }, [topic]);
+
   if (!topic) {
     return (
       <main className="p-4 sm:p-6 lg:p-8">
@@ -57,15 +66,6 @@ export default function StudyTopicPage() {
     );
   }
   
-  const initialMessages: Message[] = [{
-      role: 'assistant',
-      content: `Hello! Let's dive into **${topic.topic}**. What would you like to know? Ask me anything to prepare for your quiz.`
-  }];
-  
-  if (messages.length === 0) {
-      setMessages(initialMessages);
-  }
-
   const handleAsk = async () => {
     if (!question.trim()) return;
 
@@ -75,8 +75,14 @@ export default function StudyTopicPage() {
     setIsLoading(true);
 
     try {
-        const fullHistory = [{ role: 'assistant', content: `We are studying the topic: ${topic.topic}. The summary is: ${topic.summary}`}, ...newMessages];
-      const result = await askAi({ question, history: fullHistory });
+      // The history should include the context message and the rest of the conversation
+      const result = await askAi({
+        question,
+        history: [
+          { role: 'assistant', content: `We are studying the topic: ${topic.topic}. The summary is: ${topic.summary}` },
+          ...newMessages.slice(1) // Remove initial prompt from history to avoid duplication
+        ]
+      });
       setMessages([...newMessages, { role: 'assistant', content: result.answer }]);
     } catch (error) {
       console.error("AI request failed:", error);
