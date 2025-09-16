@@ -1,9 +1,11 @@
+
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { MainLayout } from '@/components/layout/main-layout';
 import { ThemeProvider } from '@/components/theme/theme-provider';
 import { LanguageProvider } from '@/context/language-context';
+import { StudyPlanProvider } from '@/context/study-plan-context';
 
 export const metadata: Metadata = {
   title: 'DragonAI',
@@ -30,9 +32,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <LanguageProvider>
-            <MainLayout>
-              {children}
-            </MainLayout>
+            <StudyPlanProvider>
+              <MainLayout>
+                {children}
+              </MainLayout>
+            </StudyPlanProvider>
           </LanguageProvider>
           <Toaster />
         </ThemeProvider>

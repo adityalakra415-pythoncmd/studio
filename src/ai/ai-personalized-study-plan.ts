@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent that generates a personalized study plan based on student performance.
@@ -25,7 +26,7 @@ export type GeneratePersonalizedStudyPlanInput = z.infer<
 >;
 
 const GeneratePersonalizedStudyPlanOutputSchema = z.object({
-  studyPlan: z.string().describe('The personalized study plan.'),
+  studyPlan: z.string().describe('The personalized study plan as a JSON array of objects. Each object should have an id, topic, summary, and status ("not-started", "in-progress", or "completed").'),
 });
 export type GeneratePersonalizedStudyPlanOutput = z.infer<
   typeof GeneratePersonalizedStudyPlanOutputSchema
@@ -43,12 +44,14 @@ const prompt = ai.definePrompt({
   output: {schema: GeneratePersonalizedStudyPlanOutputSchema},
   prompt: `You are an AI study assistant that helps students create personalized study plans.
 
-You will take the course material and the student's quiz results and generate a study plan that prioritizes topics the student struggles with.
+You will take the course material and generate a detailed, step-by-step study plan.
+Break the material down into logical topics. For each topic, provide a brief summary.
+Return the plan as a JSON array of objects. Each object must have the following properties: "id" (a unique number), "topic" (string), "summary" (string), and "status" (string, defaulting to "not-started").
 
 Course Material: {{{courseMaterial}}}
 Quiz Results: {{{quizResults}}}
 
-Study Plan:`,
+JSON Study Plan:`,
 });
 
 const generatePersonalizedStudyPlanFlow = ai.defineFlow(

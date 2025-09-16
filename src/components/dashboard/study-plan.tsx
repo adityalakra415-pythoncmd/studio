@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -14,10 +15,10 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { studyPlanItems } from "@/lib/placeholder-data";
 import { CheckCircle, CircleDashed, Loader } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
 import { useTranslation } from "@/hooks/use-translation";
+import { useStudyPlan } from "@/context/study-plan-context";
 
 const statusIcons = {
   completed: <CheckCircle className="w-5 h-5 text-green-500" />,
@@ -34,6 +35,7 @@ const statusColors = {
 export function StudyPlan() {
   const { translations, isTranslating } = useLanguage();
   const { t } = useTranslation();
+  const { plan: studyPlanItems } = useStudyPlan();
   const studyPlanTranslations = translations.studyPlanItems || {};
 
   const getStatusLabel = (status: 'completed' | 'in-progress' | 'not-started') => {
@@ -54,9 +56,9 @@ export function StudyPlan() {
             <AccordionItem value={`item-${item.id}`} key={item.id}>
               <AccordionTrigger>
                 <div className="flex items-center justify-between w-full">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 text-left">
                     {statusIcons[item.status]}
-                    <span className="text-left">
+                    <span>
                       {isTranslating ? '...' : (studyPlanTranslations[item.id]?.topic || item.topic)}
                     </span>
                   </div>
