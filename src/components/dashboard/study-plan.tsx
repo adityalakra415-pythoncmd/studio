@@ -15,7 +15,9 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, CircleDashed, Loader } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, CircleDashed, Loader, BookOpen } from "lucide-react";
+import Link from 'next/link';
 import { useLanguage } from "@/context/language-context";
 import { useTranslation } from "@/hooks/use-translation";
 import { useStudyPlan } from "@/context/study-plan-context";
@@ -68,9 +70,17 @@ export function StudyPlan() {
                 </div>
               </AccordionTrigger>
               <AccordionContent>
-                <p className="text-sm text-muted-foreground">
-                  {isTranslating ? '...' : (studyPlanTranslations[item.id]?.summary || item.summary)}
-                </p>
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    {isTranslating ? '...' : (studyPlanTranslations[item.id]?.summary || item.summary)}
+                  </p>
+                  <Link href={`/study/${item.id}`} passHref>
+                    <Button>
+                      <BookOpen className="mr-2" />
+                      {t('studyPlan').studyTopic}
+                    </Button>
+                  </Link>
+                </div>
               </AccordionContent>
             </AccordionItem>
           ))}

@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -12,14 +13,28 @@ import {
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { quizQuestions } from "@/lib/placeholder-data";
+import { quizQuestions as defaultQuizQuestions } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, XCircle } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
 import { useTranslation } from "@/hooks/use-translation";
 
-export function QuizSection() {
+type QuizQuestion = {
+    id: number;
+    question: string;
+    type: "mcq" | "fib";
+    options?: string[];
+    answer: string;
+    topic: string;
+}
+
+interface QuizSectionProps {
+  preloadedQuiz?: QuizQuestion[];
+}
+
+export function QuizSection({ preloadedQuiz }: QuizSectionProps) {
+  const [quizQuestions, setQuizQuestions] = useState(preloadedQuiz || defaultQuizQuestions);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
@@ -28,6 +43,16 @@ export function QuizSection() {
   const { t } = useTranslation();
 
   const { translations, isTranslating } = useLanguage();
+  
+  useEffect(() => {
+    if(preloadedQuiz) {
+        setQuizQuestions(preloadedQuiz);
+        setCurrentQuestionIndex(0);
+        setSelectedAnswer(null);
+        setShowResult(false);
+    }
+  }, [preloadedQuiz])
+
   const quizTranslations = translations.quizQuestions || {};
   
   const currentQuestion = quizQuestions[currentQuestionIndex];
@@ -44,7 +69,7 @@ export function QuizSection() {
     }
     
     let answerToCheck = selectedAnswer;
-    if (translatedQuestion && translatedQuestion.options) {
+    if (translatedQuestion && translatedQuestion.options && !preloadedQuiz) { // Don't translate answers for dynamic quizzes
         const translatedIndex = translatedQuestion.options.indexOf(selectedAnswer);
         if (translatedIndex !== -1 && currentQuestion.options) {
             answerToCheck = currentQuestion.options[translatedIndex];
@@ -72,23 +97,32 @@ export function QuizSection() {
     setCurrentQuestionIndex(nextIndex);
   };
   
-  const displayQuestion = isTranslating ? '...' : (translatedQuestion?.question || currentQuestion.question);
-  const displayTopic = isTranslating ? '...' : (translatedQuestion?.topic || currentQuestion.topic);
-  const displayOptions = translatedQuestion?.options || currentQuestion.options;
+  const displayQuestion = isTranslating && !preloadedQuiz ? '...' : (translatedQuestion?.question || currentQuestion.question);
+  const displayTopic = isTranslating && !preloadedQuiz ? '...' : (translatedQuestion?.topic || currentQuestion.topic);
+  const displayOptions = (preloadedQuiz ? currentQuestion.options : translatedQuestion?.options) || currentQuestion.options;
   
   const originalAnswer = currentQuestion.answer;
-  const translatedAnswer = translatedQuestion?.options[currentQuestion.options?.indexOf(originalAnswer) ?? -1] || originalAnswer;
+  let translatedAnswer = originalAnswer;
+  if(!preloadedQuiz && translatedQuestion?.options) {
+    translatedAnswer = translatedQuestion.options[currentQuestion.options?.indexOf(originalAnswer) ?? -1] || originalAnswer;
+  }
+  
+  if (!currentQuestion) {
+      return <p>Loading quiz...</p>
+  }
 
   return (
     <Card className="h-full flex flex-col">
-      <CardHeader>
-         <div className="flex items-start justify-between">
-          <div>
-            <CardTitle>{t('quiz').title}</CardTitle>
-            <CardDescription>{displayTopic}</CardDescription>
+      {!preloadedQuiz && (
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle>{t('quiz').title}</CardTitle>
+              <CardDescription>{displayTopic}</CardDescription>
+            </div>
           </div>
-         </div>
-      </CardHeader>
+        </CardHeader>
+      )}
       <CardContent className="flex-grow">
         <p className="mb-4 font-medium">{displayQuestion}</p>
         {currentQuestion.type === "mcq" && (

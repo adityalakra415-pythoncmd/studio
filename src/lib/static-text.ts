@@ -39,6 +39,7 @@ export const staticText = {
   studyPlan: {
     title: "Personalized Study Plan",
     description: "Your adaptive path to mastering the material.",
+    studyTopic: "Study Topic",
     status: {
         completed: "Completed",
         'in-progress': "In Progress",
@@ -64,4 +65,14 @@ export const staticText = {
     ask: "Ask",
     asking: "Asking...",
   },
+  studyTopic: {
+    title: 'Study Topic',
+    back: 'Back to Study Plan',
+    description: 'Use the chat below to research and learn about this topic. When you feel ready, you can generate a quiz.',
+    generateQuiz: 'Generate Quiz',
+    generatingQuiz: 'Generating Quiz...',
+    aiPlaceholder: 'Ask a question about this topic...',
+    quizReady: 'Your special quiz is ready!',
+    startQuiz: 'Start Quiz'
+  }
 };
