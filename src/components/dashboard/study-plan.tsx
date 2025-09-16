@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, CircleDashed, Loader, BookOpen } from "lucide-react";
+import { CheckCircle, CircleDashed, Loader, BookOpen, Trash2 } from "lucide-react";
 import Link from 'next/link';
 import { useLanguage } from "@/context/language-context";
 import { useTranslation } from "@/hooks/use-translation";
@@ -37,7 +37,7 @@ const statusColors = {
 export function StudyPlan() {
   const { translations, isTranslating } = useLanguage();
   const { t } = useTranslation();
-  const { plan: studyPlanItems } = useStudyPlan();
+  const { plan: studyPlanItems, removeTopic } = useStudyPlan();
   const studyPlanTranslations = translations.studyPlanItems || {};
 
   const getStatusLabel = (status: 'completed' | 'in-progress' | 'not-started') => {
@@ -53,38 +53,51 @@ export function StudyPlan() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Accordion type="single" collapsible className="w-full">
-          {studyPlanItems.map((item) => (
-            <AccordionItem value={`item-${item.id}`} key={item.id}>
-              <AccordionTrigger>
-                <div className="flex items-center justify-between w-full">
-                  <div className="flex items-center gap-3 text-left">
-                    {statusIcons[item.status]}
-                    <span>
-                      {isTranslating ? '...' : (studyPlanTranslations[item.id]?.topic || item.topic)}
-                    </span>
+        {studyPlanItems.length === 0 ? (
+          <div className="text-center text-muted-foreground py-10">
+            <p>Your study plan is empty.</p>
+            <p className="text-sm">Use the "Add Topic" button to generate a new plan.</p>
+          </div>
+        ) : (
+          <Accordion type="single" collapsible className="w-full">
+            {studyPlanItems.map((item) => (
+              <AccordionItem value={`item-${item.id}`} key={item.id}>
+                <AccordionTrigger>
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-3 text-left">
+                      {statusIcons[item.status]}
+                      <span>
+                        {isTranslating ? '...' : (studyPlanTranslations[item.id]?.topic || item.topic)}
+                      </span>
+                    </div>
+                    <Badge variant="outline" className={statusColors[item.status]}>
+                      {isTranslating ? '...' : getStatusLabel(item.status)}
+                    </Badge>
                   </div>
-                  <Badge variant="outline" className={statusColors[item.status]}>
-                    {isTranslating ? '...' : getStatusLabel(item.status)}
-                  </Badge>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    {isTranslating ? '...' : (studyPlanTranslations[item.id]?.summary || item.summary)}
-                  </p>
-                  <Link href={`/study/${item.id}`} passHref>
-                    <Button>
-                      <BookOpen className="mr-2" />
-                      {t('studyPlan').studyTopic}
-                    </Button>
-                  </Link>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      {isTranslating ? '...' : (studyPlanTranslations[item.id]?.summary || item.summary)}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Link href={`/study/${item.id}`} passHref>
+                        <Button>
+                          <BookOpen className="mr-2" />
+                          {t('studyPlan').studyTopic}
+                        </Button>
+                      </Link>
+                       <Button variant="destructive" size="icon" onClick={() => removeTopic(item.id)}>
+                        <Trash2 className="w-4 h-4" />
+                        <span className="sr-only">Delete</span>
+                      </Button>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        )}
       </CardContent>
     </Card>
   );
