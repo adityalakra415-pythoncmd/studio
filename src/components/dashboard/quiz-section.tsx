@@ -30,11 +30,11 @@ type QuizQuestion = {
 }
 
 interface QuizSectionProps {
-  preloadedQuiz?: QuizQuestion[];
+  preloadedQuiz?: QuizQuestion[] | null;
 }
 
 export function QuizSection({ preloadedQuiz }: QuizSectionProps) {
-  const [quizQuestions, setQuizQuestions] = useState(preloadedQuiz || defaultQuizQuestions);
+  const [quizQuestions, setQuizQuestions] = useState(preloadedQuiz === null ? [] : (preloadedQuiz || defaultQuizQuestions));
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
@@ -45,18 +45,31 @@ export function QuizSection({ preloadedQuiz }: QuizSectionProps) {
   const { translations, isTranslating } = useLanguage();
   
   useEffect(() => {
-    if(preloadedQuiz) {
-        setQuizQuestions(preloadedQuiz);
-        setCurrentQuestionIndex(0);
-        setSelectedAnswer(null);
-        setShowResult(false);
+    if (preloadedQuiz === null) { // Explicitly check for null to show all default quizzes
+      setQuizQuestions(defaultQuizQuestions);
+    } else if(preloadedQuiz) {
+      setQuizQuestions(preloadedQuiz);
     }
+    setCurrentQuestionIndex(0);
+    setSelectedAnswer(null);
+    setShowResult(false);
   }, [preloadedQuiz])
+
+  if (quizQuestions.length === 0) {
+      return (
+        <div className="text-center text-muted-foreground py-10">
+          <p>No quiz loaded.</p>
+          <p className="text-sm">Use the search bar to find or create a quiz.</p>
+        </div>
+      );
+  }
 
   const quizTranslations = translations.quizQuestions || {};
   
   const currentQuestion = quizQuestions[currentQuestionIndex];
   const translatedQuestion = quizTranslations[currentQuestion.id];
+
+  const isDynamicQuiz = !!preloadedQuiz;
 
   const handleSubmit = () => {
     if (!selectedAnswer) {
@@ -69,7 +82,7 @@ export function QuizSection({ preloadedQuiz }: QuizSectionProps) {
     }
     
     let answerToCheck = selectedAnswer;
-    if (translatedQuestion && translatedQuestion.options && !preloadedQuiz) { // Don't translate answers for dynamic quizzes
+    if (translatedQuestion && translatedQuestion.options && !isDynamicQuiz) { 
         const translatedIndex = translatedQuestion.options.indexOf(selectedAnswer);
         if (translatedIndex !== -1 && currentQuestion.options) {
             answerToCheck = currentQuestion.options[translatedIndex];
@@ -97,13 +110,13 @@ export function QuizSection({ preloadedQuiz }: QuizSectionProps) {
     setCurrentQuestionIndex(nextIndex);
   };
   
-  const displayQuestion = isTranslating && !preloadedQuiz ? '...' : (translatedQuestion?.question || currentQuestion.question);
-  const displayTopic = isTranslating && !preloadedQuiz ? '...' : (translatedQuestion?.topic || currentQuestion.topic);
-  const displayOptions = (preloadedQuiz ? currentQuestion.options : translatedQuestion?.options) || currentQuestion.options;
+  const displayQuestion = isTranslating && !isDynamicQuiz ? '...' : (translatedQuestion?.question || currentQuestion.question);
+  const displayTopic = isTranslating && !isDynamicQuiz ? '...' : (translatedQuestion?.topic || currentQuestion.topic);
+  const displayOptions = (isDynamicQuiz ? currentQuestion.options : translatedQuestion?.options) || currentQuestion.options;
   
   const originalAnswer = currentQuestion.answer;
   let translatedAnswer = originalAnswer;
-  if(!preloadedQuiz && translatedQuestion?.options) {
+  if(!isDynamicQuiz && translatedQuestion?.options) {
     translatedAnswer = translatedQuestion.options[currentQuestion.options?.indexOf(originalAnswer) ?? -1] || originalAnswer;
   }
   
@@ -112,17 +125,15 @@ export function QuizSection({ preloadedQuiz }: QuizSectionProps) {
   }
 
   return (
-    <Card className="h-full flex flex-col">
-      {!preloadedQuiz && (
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle>{t('quiz').title}</CardTitle>
-              <CardDescription>{displayTopic}</CardDescription>
-            </div>
+    <Card className="h-full flex flex-col shadow-none border-0">
+      <CardHeader>
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle>{t('quiz').title}</CardTitle>
+            <CardDescription>{displayTopic}</CardDescription>
           </div>
-        </CardHeader>
-      )}
+        </div>
+      </CardHeader>
       <CardContent className="flex-grow">
         <p className="mb-4 font-medium">{displayQuestion}</p>
         {currentQuestion.type === "mcq" && (
@@ -168,7 +179,7 @@ export function QuizSection({ preloadedQuiz }: QuizSectionProps) {
         {showResult ? (
           <Button onClick={handleNext}>{t('quiz').nextQuestion}</Button>
         ) : (
-          <Button onClick={handleSubmit} disabled={isTranslating}>
+          <Button onClick={handleSubmit} disabled={isTranslating || !selectedAnswer}>
             {isTranslating ? t('quiz').translating : t('quiz').submit}
           </Button>
         )}
