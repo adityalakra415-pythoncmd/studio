@@ -38,7 +38,7 @@ export function Footer() {
                 <p className="text-lg font-medium text-foreground">Contact Us</p>
                 <ul className="mt-4 space-y-2 text-sm">
                     <li>
-                        <span className="text-muted-foreground">support@dragonai.com</span>
+                        <a href="mailto:adityalakra415@gmail.com" className="text-muted-foreground hover:text-foreground">adityalakra415@gmail.com</a>
                     </li>
                 </ul>
             </div>
