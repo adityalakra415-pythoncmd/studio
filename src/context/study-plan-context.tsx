@@ -7,6 +7,7 @@ import { studyPlanItems as defaultStudyPlanItems, StudyPlanItem } from "@/lib/pl
 interface StudyPlanContextType {
   plan: StudyPlanItem[];
   setPlan: (plan: StudyPlanItem[]) => void;
+  updateTopicStatus: (topicId: number, status: StudyPlanItem['status']) => void;
 }
 
 const StudyPlanContext = createContext<StudyPlanContextType | undefined>(undefined);
@@ -14,9 +15,18 @@ const StudyPlanContext = createContext<StudyPlanContextType | undefined>(undefin
 export function StudyPlanProvider({ children }: { children: ReactNode }) {
   const [plan, setPlan] = useState<StudyPlanItem[]>(defaultStudyPlanItems);
 
+  const updateTopicStatus = (topicId: number, status: StudyPlanItem['status']) => {
+    setPlan(prevPlan => 
+      prevPlan.map(item => 
+        item.id === topicId ? { ...item, status } : item
+      )
+    );
+  };
+
   const value = {
     plan,
     setPlan,
+    updateTopicStatus,
   };
 
   return (

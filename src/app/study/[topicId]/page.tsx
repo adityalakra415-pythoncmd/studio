@@ -12,11 +12,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bot, User, Loader, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/use-translation";
-import { studyPlanItems } from "@/lib/placeholder-data";
+import { useStudyPlan } from "@/context/study-plan-context";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { askAi } from "@/ai/flows/ai-ask-ai";
 import { generateQuiz } from "@/ai/ai-dynamic-quiz-generation";
 import { QuizSection } from "@/components/dashboard/quiz-section";
+import { QuizQuestion, StudyPlanItem } from "@/lib/placeholder-data";
 
 type Message = {
   role: 'user' | 'assistant';
@@ -29,6 +30,7 @@ export default function StudyTopicPage() {
   const { topicId } = params;
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { plan: studyPlanItems, updateTopicStatus } = useStudyPlan();
 
   const topic = studyPlanItems.find(item => item.id.toString() === topicId);
   const userAvatar = PlaceHolderImages.find((p) => p.id === 'user-avatar');
@@ -37,7 +39,7 @@ export default function StudyTopicPage() {
   const [question, setQuestion] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
-  const [generatedQuiz, setGeneratedQuiz] = useState<any>(null);
+  const [generatedQuiz, setGeneratedQuiz] = useState<QuizQuestion[] | null>(null);
 
   if (!topic) {
     return (
@@ -57,7 +59,7 @@ export default function StudyTopicPage() {
   
   const initialMessages: Message[] = [{
       role: 'assistant',
-      content: `Hello! Let's dive into **${topic.topic}**. What would you like to know?`
+      content: `Hello! Let's dive into **${topic.topic}**. What would you like to know? Ask me anything to prepare for your quiz.`
   }];
   
   if (messages.length === 0) {
@@ -98,13 +100,16 @@ export default function StudyTopicPage() {
 
   const handleGenerateQuiz = async () => {
     setIsGeneratingQuiz(true);
+    setGeneratedQuiz(null);
     try {
       const conversation = messages.map(m => `${m.role}: ${m.content}`).join('\n');
       const quizContent = `Topic: ${topic.topic}\n\nStudy Conversation:\n${conversation}`;
       
       const result = await generateQuiz({ content: quizContent });
       const parsedQuiz = JSON.parse(result.quiz);
-      setGeneratedQuiz(parsedQuiz);
+      const questions = Array.isArray(parsedQuiz) ? parsedQuiz : parsedQuiz.questions || [];
+
+      setGeneratedQuiz(questions);
       toast({
         title: t('studyTopic').quizReady,
         description: t('studyTopic').startQuiz,
@@ -122,6 +127,24 @@ export default function StudyTopicPage() {
     }
   };
   
+  const handleQuizComplete = (score: number, total: number) => {
+    if (score / total >= 0.8) {
+      updateTopicStatus(topic.id, 'completed');
+      toast({
+        title: "Topic Completed!",
+        description: `You've mastered ${topic.topic}! Check your study plan.`,
+        className: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border-green-500"
+      });
+      router.push('/study-plan');
+    } else {
+       toast({
+        title: "Keep Studying!",
+        description: "You're getting closer. Try reviewing the material and take the quiz again.",
+        variant: "destructive"
+      });
+    }
+  }
+
   return (
     <main className="p-4 sm:p-6 lg:p-8">
       <div className="max-w-screen-xl mx-auto space-y-6">
@@ -201,7 +224,7 @@ export default function StudyTopicPage() {
                     <CardTitle>{t('quiz').title}: {topic.topic}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <QuizSection preloadedQuiz={generatedQuiz} />
+                    <QuizSection preloadedQuiz={generatedQuiz} onQuizComplete={handleQuizComplete} />
                 </CardContent>
             </Card>
         )}

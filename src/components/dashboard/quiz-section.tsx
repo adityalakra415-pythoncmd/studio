@@ -31,14 +31,16 @@ type QuizQuestion = {
 
 interface QuizSectionProps {
   preloadedQuiz?: QuizQuestion[] | null;
+  onQuizComplete?: (score: number, total: number) => void;
 }
 
-export function QuizSection({ preloadedQuiz }: QuizSectionProps) {
+export function QuizSection({ preloadedQuiz, onQuizComplete }: QuizSectionProps) {
   const [quizQuestions, setQuizQuestions] = useState(preloadedQuiz === null ? [] : (preloadedQuiz || defaultQuizQuestions));
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
+  const [score, setScore] = useState(0);
   const { toast } = useToast();
   const { t } = useTranslation();
 
@@ -53,6 +55,7 @@ export function QuizSection({ preloadedQuiz }: QuizSectionProps) {
     setCurrentQuestionIndex(0);
     setSelectedAnswer(null);
     setShowResult(false);
+    setScore(0);
   }, [preloadedQuiz])
 
   if (quizQuestions.length === 0) {
@@ -92,22 +95,28 @@ export function QuizSection({ preloadedQuiz }: QuizSectionProps) {
     const correct = answerToCheck === currentQuestion.answer;
     setIsCorrect(correct);
     setShowResult(true);
+    if (correct) {
+      setScore(prevScore => prevScore + 1);
+    }
   };
 
   const handleNext = () => {
     setShowResult(false);
     setSelectedAnswer(null);
-    let nextIndex;
-    if (currentQuestionIndex < quizQuestions.length - 1) {
-      nextIndex = currentQuestionIndex + 1
-    } else {
-      nextIndex = 0;
+    const isLastQuestion = currentQuestionIndex === quizQuestions.length - 1;
+
+    if (isLastQuestion) {
+      const finalScore = isCorrect ? score + 1 : score;
       toast({
         title: t('quiz').quizCompleteTitle,
-        description: t('quiz').quizCompleteDescription,
+        description: `You scored ${finalScore} out of ${quizQuestions.length}. ${t('quiz').quizCompleteDescription}`,
       });
+      onQuizComplete?.(finalScore, quizQuestions.length);
+      setCurrentQuestionIndex(0); // Reset for next time
+      setScore(0);
+    } else {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
-    setCurrentQuestionIndex(nextIndex);
   };
   
   const displayQuestion = isTranslating && !isDynamicQuiz ? '...' : (translatedQuestion?.question || currentQuestion.question);
@@ -116,8 +125,8 @@ export function QuizSection({ preloadedQuiz }: QuizSectionProps) {
   
   const originalAnswer = currentQuestion.answer;
   let translatedAnswer = originalAnswer;
-  if(!isDynamicQuiz && translatedQuestion?.options) {
-    translatedAnswer = translatedQuestion.options[currentQuestion.options?.indexOf(originalAnswer) ?? -1] || originalAnswer;
+  if(!isDynamicQuiz && translatedQuestion?.options && currentQuestion.options) {
+    translatedAnswer = translatedQuestion.options[currentQuestion.options.indexOf(originalAnswer)] || originalAnswer;
   }
   
   if (!currentQuestion) {
@@ -135,7 +144,7 @@ export function QuizSection({ preloadedQuiz }: QuizSectionProps) {
         </div>
       </CardHeader>
       <CardContent className="flex-grow">
-        <p className="mb-4 font-medium">{displayQuestion}</p>
+        <p className="mb-4 font-medium">{`Question ${currentQuestionIndex + 1}/${quizQuestions.length}: ${displayQuestion}`}</p>
         {currentQuestion.type === "mcq" && (
           <RadioGroup
             onValueChange={setSelectedAnswer}
