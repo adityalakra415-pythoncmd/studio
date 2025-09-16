@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { studyPlanItems } from "@/lib/placeholder-data";
 import { CheckCircle, CircleDashed, Loader } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
+import { useTranslation } from "@/hooks/use-translation";
 
 const statusIcons = {
   completed: <CheckCircle className="w-5 h-5 text-green-500" />,
@@ -32,14 +33,19 @@ const statusColors = {
 
 export function StudyPlan() {
   const { translations, isTranslating } = useLanguage();
+  const { t } = useTranslation();
   const studyPlanTranslations = translations.studyPlanItems || {};
+
+  const getStatusLabel = (status: 'completed' | 'in-progress' | 'not-started') => {
+    return t('studyPlan').status[status].replace("-", " ");
+  }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Personalized Study Plan</CardTitle>
+        <CardTitle>{t('studyPlan').title}</CardTitle>
         <CardDescription>
-          Your adaptive path to mastering the material.
+          {t('studyPlan').description}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -55,7 +61,7 @@ export function StudyPlan() {
                     </span>
                   </div>
                   <Badge variant="outline" className={statusColors[item.status]}>
-                    {item.status.replace("-", " ")}
+                    {isTranslating ? '...' : getStatusLabel(item.status)}
                   </Badge>
                 </div>
               </AccordionTrigger>

@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, XCircle } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
+import { useTranslation } from "@/hooks/use-translation";
 
 export function QuizSection() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -24,6 +25,7 @@ export function QuizSection() {
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const { translations, isTranslating } = useLanguage();
   const quizTranslations = translations.quizQuestions || {};
@@ -34,8 +36,8 @@ export function QuizSection() {
   const handleSubmit = () => {
     if (!selectedAnswer) {
       toast({
-        title: "No answer selected",
-        description: "Please choose an answer before submitting.",
+        title: t('quiz').noAnswerTitle,
+        description: t('quiz').noAnswerDescription,
         variant: "destructive",
       });
       return;
@@ -63,8 +65,8 @@ export function QuizSection() {
     } else {
       nextIndex = 0;
       toast({
-        title: "Quiz Complete!",
-        description: "Your study plan will be adjusted based on your performance.",
+        title: t('quiz').quizCompleteTitle,
+        description: t('quiz').quizCompleteDescription,
       });
     }
     setCurrentQuestionIndex(nextIndex);
@@ -82,7 +84,7 @@ export function QuizSection() {
       <CardHeader>
          <div className="flex items-start justify-between">
           <div>
-            <CardTitle>Topic Quiz</CardTitle>
+            <CardTitle>{t('quiz').title}</CardTitle>
             <CardDescription>{displayTopic}</CardDescription>
           </div>
          </div>
@@ -126,14 +128,14 @@ export function QuizSection() {
             isCorrect ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
           )}>
             {isCorrect ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
-            {isCorrect ? "Correct!" : `Incorrect. The correct answer is: ${translatedAnswer}`}
+            {isCorrect ? t('quiz').correct : `${t('quiz').incorrect} ${translatedAnswer}`}
           </div>
         )}
         {showResult ? (
-          <Button onClick={handleNext}>Next Question</Button>
+          <Button onClick={handleNext}>{t('quiz').nextQuestion}</Button>
         ) : (
           <Button onClick={handleSubmit} disabled={isTranslating}>
-            {isTranslating ? 'Translating...' : 'Submit'}
+            {isTranslating ? t('quiz').translating : t('quiz').submit}
           </Button>
         )}
       </CardFooter>

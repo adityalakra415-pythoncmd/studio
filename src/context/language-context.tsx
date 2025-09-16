@@ -4,7 +4,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { liveTranslate } from "@/ai/flows/ai-live-translate";
-import { studyPlanItems, quizQuestions } from "@/lib/placeholder-data";
+import { studyPlanItems, quizQuestions, progressData } from "@/lib/placeholder-data";
+import { staticText } from "@/lib/static-text";
 
 interface LanguageContextType {
   targetLanguage: string;
@@ -17,13 +18,13 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [targetLanguage, setTargetLanguage] = useState("english");
-  const [translations, setTranslations] = useState<any>({});
+  const [translations, setTranslations] = useState<any>(staticText);
   const [isTranslating, setIsTranslating] = useState(false);
   const { toast } = useToast();
 
   const translateContent = useCallback(async (language: string) => {
     if (language === 'english') {
-      setTranslations({});
+      setTranslations(staticText);
       return;
     }
 
@@ -31,18 +32,23 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     try {
       const studyPlanContent = studyPlanItems.map(item => ({ id: item.id, topic: item.topic, summary: item.summary }));
       const quizContent = quizQuestions.map(q => ({ id: q.id, question: q.question, options: q.options, topic: q.topic }));
+      const progressDataTopics = progressData.map(item => item.topic);
 
       const contentToTranslate = {
+        ...staticText,
         studyPlanItems: studyPlanContent,
         quizQuestions: quizContent,
+        progressData: progressDataTopics,
       };
       
       const result = await liveTranslate({ content: JSON.stringify(contentToTranslate), targetLanguage: language });
       const translated = JSON.parse(result.translatedContent);
       
       const newTranslations: any = {
+        ...translated,
         studyPlanItems: {},
         quizQuestions: {},
+        progressData: {},
       };
 
       translated.studyPlanItems.forEach((item: any) => {
@@ -51,6 +57,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
       translated.quizQuestions.forEach((item: any) => {
         newTranslations.quizQuestions[item.id] = { question: item.question, options: item.options, topic: item.topic };
+      });
+
+      progressData.forEach((item, index) => {
+        newTranslations.progressData[item.topic] = translated.progressData[index];
       });
       
       setTranslations(newTranslations);
@@ -62,6 +72,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         description: "Could not translate the page content.",
         variant: "destructive",
       });
+      setTranslations(staticText); // Revert to default on error
     } finally {
       setIsTranslating(false);
     }

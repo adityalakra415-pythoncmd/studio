@@ -34,11 +34,13 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslation } from '@/hooks/use-translation';
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
   const userAvatar = PlaceHolderImages.find((p) => p.id === 'user-avatar');
   const [isClient, setIsClient] = useState(false);
   const pathname = usePathname();
+  const { t } = useTranslation();
 
   useEffect(() => {
     setIsClient(true);
@@ -61,7 +63,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                   <Link href="/">
                     <SidebarMenuButton isActive={pathname === '/'}>
                       <LayoutDashboard />
-                      <span>Dashboard</span>
+                      <span>{t('sidebar').dashboard}</span>
                     </SidebarMenuButton>
                   </Link>
                 </SidebarMenuItem>
@@ -69,7 +71,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                   <Link href="/study-plan">
                     <SidebarMenuButton isActive={pathname === '/study-plan'}>
                       <BookOpenCheck />
-                      <span>Study Plan</span>
+                      <span>{t('sidebar').studyPlan}</span>
                     </SidebarMenuButton>
                   </Link>
                 </SidebarMenuItem>
@@ -77,7 +79,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                   <Link href="/quizzes">
                     <SidebarMenuButton isActive={pathname === '/quizzes'}>
                       <FileQuestion />
-                      <span>Quizzes</span>
+                      <span>{t('sidebar').quizzes}</span>
                     </SidebarMenuButton>
                   </Link>
                 </SidebarMenuItem>
@@ -95,7 +97,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                       <AvatarFallback>S</AvatarFallback>
                     </Avatar>
                     <div className="text-left">
-                      <p className="font-semibold">Student</p>
+                      <p className="font-semibold">{t('sidebar').student}</p>
                       <p className="text-xs text-muted-foreground">
                         student@email.com
                       </p>
@@ -105,16 +107,16 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                 <DropdownMenuContent className="mb-2 w-56">
                   <DropdownMenuItem>
                     <User className="w-4 h-4 mr-2" />
-                    Profile
+                    {t('sidebar').profile}
                   </DropdownMenuItem>
                   <DropdownMenuItem>
                     <Settings className="w-4 h-4 mr-2" />
-                    Settings
+                    {t('sidebar').settings}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>
                     <LogOut className="w-4 h-4 mr-2" />
-                    Log out
+                    {t('sidebar').logOut}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

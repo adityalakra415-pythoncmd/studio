@@ -13,6 +13,8 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { progressData } from "@/lib/placeholder-data";
+import { useTranslation } from "@/hooks/use-translation";
+import { useLanguage } from "@/context/language-context";
 
 const chartConfig = {
   mastery: {
@@ -22,39 +24,55 @@ const chartConfig = {
 };
 
 export function ProgressOverview() {
+  const { t, isTranslating } = useTranslation();
+  const { translations } = useLanguage();
+
   const totalMastery = progressData.reduce((acc, item) => acc + item.mastery, 0);
   const averageMastery = Math.round(totalMastery / progressData.length);
   const topicsMastered = progressData.filter(item => item.mastery >= 80).length;
 
+  const translatedProgressData = progressData.map(item => ({
+    ...item,
+    topic: isTranslating ? '...' : (translations.progressData?.[item.topic] || item.topic),
+  }));
+
+  const {
+    title,
+    description,
+    avgMastery,
+    topicsMastered: topicsMasteredLabel,
+    studyStreak,
+  } = t('progressOverview');
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Mastery Dashboard</CardTitle>
-        <CardDescription>Your progress across all topics.</CardDescription>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 gap-6 mb-6 sm:grid-cols-3">
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Avg. Mastery</CardDescription>
+              <CardDescription>{avgMastery}</CardDescription>
               <CardTitle className="text-4xl text-primary">{averageMastery}%</CardTitle>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Topics Mastered</CardDescription>
+              <CardDescription>{topicsMasteredLabel}</CardDescription>
               <CardTitle className="text-4xl">{topicsMastered}</CardTitle>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Study Streak</CardDescription>
-              <CardTitle className="text-4xl">12 Days</CardTitle>
+              <CardDescription>{studyStreak}</CardDescription>
+              <CardTitle className="text-4xl">12 {t('days')}</CardTitle>
             </CardHeader>
           </Card>
         </div>
         <ChartContainer config={chartConfig} className="w-full h-[300px]">
-          <BarChart accessibilityLayer data={progressData}>
+          <BarChart accessibilityLayer data={translatedProgressData}>
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="topic"

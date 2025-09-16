@@ -12,15 +12,17 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link, UploadCloud, CheckCircle } from "lucide-react";
+import { Link, UploadCloud } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/hooks/use-translation";
 
 export function ContentUpload() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -32,12 +34,12 @@ export function ContentUpload() {
       setIsUploading(false);
       setIsComplete(true);
       toast({
-        title: "Analysis Complete",
-        description: "Your content has been summarized and added to your study plan.",
+        title: t('contentUpload').analysisComplete,
+        description: t('contentUpload').analysisCompleteDescription,
       });
     }
     return () => clearTimeout(timer);
-  }, [isUploading, uploadProgress, toast]);
+  }, [isUploading, uploadProgress, toast, t]);
 
   const handleAnalyze = () => {
     setIsComplete(false);
@@ -51,29 +53,44 @@ export function ContentUpload() {
     setIsUploading(false);
   }
 
+  const {
+    title,
+    description,
+    uploadTab,
+    linkTab,
+    dragAndDrop,
+    pasteLink,
+    analyzing,
+    analysisComplete,
+    uploadMore,
+    analyzeContent,
+    analyzingButton,
+  } = t('contentUpload');
+
+
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle>Ingest Content</CardTitle>
-        <CardDescription>Upload materials for your study plan.</CardDescription>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="upload">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="upload">
               <UploadCloud className="w-4 h-4 mr-2" />
-              Upload
+              {uploadTab}
             </TabsTrigger>
             <TabsTrigger value="link">
               <Link className="w-4 h-4 mr-2" />
-              Link
+              {linkTab}
             </TabsTrigger>
           </TabsList>
           <TabsContent value="upload">
             <div className="flex flex-col items-center justify-center p-6 mt-2 border-2 border-dashed rounded-lg border-muted-foreground/20">
               <UploadCloud className="w-12 h-12 text-muted-foreground/50" />
               <p className="mt-2 text-sm text-center text-muted-foreground">
-                Drag & drop files here or click to browse
+                {dragAndDrop}
               </p>
               <Input type="file" className="sr-only" />
             </div>
@@ -81,7 +98,7 @@ export function ContentUpload() {
           <TabsContent value="link">
             <div className="flex flex-col p-6 mt-2 border-2 border-dashed rounded-lg border-muted-foreground/20">
               <p className="mb-4 text-sm text-center text-muted-foreground">
-                Paste a link to a video or article.
+                {pasteLink}
               </p>
               <Input placeholder="https://..." />
             </div>
@@ -91,8 +108,8 @@ export function ContentUpload() {
           <div className="mt-4 space-y-2">
             <Progress value={uploadProgress} />
             <p className="text-sm text-center text-muted-foreground">
-              {isUploading && `Analyzing... ${Math.round(uploadProgress)}%`}
-              {isComplete && "Analysis complete!"}
+              {isUploading && `${analyzing} ${Math.round(uploadProgress)}%`}
+              {isComplete && analysisComplete}
             </p>
           </div>
         )}
@@ -100,11 +117,11 @@ export function ContentUpload() {
       <CardFooter>
         {isComplete ? (
            <Button className="w-full" onClick={resetState}>
-            Upload More
+            {uploadMore}
           </Button>
         ) : (
           <Button className="w-full" onClick={handleAnalyze} disabled={isUploading}>
-            {isUploading ? "Analyzing..." : "Analyze Content"}
+            {isUploading ? analyzingButton : analyzeContent}
           </Button>
         )}
       </CardFooter>
