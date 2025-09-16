@@ -4,7 +4,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { ThemeSwitcher } from "@/components/theme/theme-switcher";
-import { Translator } from "./translator";
+import { LanguageSwitcher } from "./language-switcher";
 
 export function Header() {
   return (
@@ -21,7 +21,7 @@ export function Header() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Search topics, quizzes..." className="pl-9" />
           </div>
-          <Translator />
+          <LanguageSwitcher />
           <ThemeSwitcher />
         </div>
       </div>

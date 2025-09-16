@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { MainLayout } from '@/components/layout/main-layout';
 import { ThemeProvider } from '@/components/theme/theme-provider';
+import { LanguageProvider } from '@/context/language-context';
 
 export const metadata: Metadata = {
   title: 'DragonAI',
@@ -28,9 +29,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <MainLayout>
-            {children}
-          </MainLayout>
+          <LanguageProvider>
+            <MainLayout>
+              {children}
+            </MainLayout>
+          </LanguageProvider>
           <Toaster />
         </ThemeProvider>
       </body>
