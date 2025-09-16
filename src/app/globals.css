@@ -130,7 +130,22 @@ body {
     @apply bg-background text-foreground;
   }
   .glass body, .glass.dark body {
-    background-image: linear-gradient(to bottom right, hsl(var(--primary) / 0.2), hsl(var(--accent) / 0.2));
+    position: relative;
+    overflow-x: hidden;
+  }
+  .glass body::before, .glass.dark body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.3), hsl(var(--accent) / 0.3), #ff7e5f, #feb47b, #ffc9a8, #86a8e7);
+    background-size: 400% 400%;
+    animation: rgb-aurora 20s ease infinite;
+    filter: blur(100px);
+    transform: translate3d(0,0,0);
   }
   .glass .bg-background, .glass.dark .bg-background {
     @apply bg-transparent;
@@ -138,4 +153,10 @@ body {
   .glass [class*="bg-"], .glass.dark [class*="bg-"] {
     @apply backdrop-blur-md;
   }
+}
+
+@keyframes rgb-aurora {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
