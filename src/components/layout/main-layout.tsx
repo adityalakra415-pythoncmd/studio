@@ -19,6 +19,7 @@ import {
   FileQuestion,
   Settings,
   User,
+  LogIn
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -32,21 +33,70 @@ import {
 import { Logo } from '@/components/icons/logo';
 import { Header } from '@/components/dashboard/header';
 import { Footer } from '@/components/layout/footer';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from '@/hooks/use-translation';
+import { useAuth } from '@/context/auth-context';
+import { signInWithGoogle, signOut } from '@/lib/auth';
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
-  const userAvatar = PlaceHolderImages.find((p) => p.id === 'user-avatar');
   const [isClient, setIsClient] = useState(false);
   const pathname = usePathname();
   const { t } = useTranslation();
+  const { user } = useAuth();
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  const UserProfile = () => {
+    if (user) {
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="justify-start w-full gap-2 p-2 h-14"
+            >
+              <Avatar>
+                {user.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || 'User Avatar'} />}
+                <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
+              </Avatar>
+              <div className="text-left group-data-[collapsible=icon]:hidden">
+                <p className="font-semibold">{user.displayName}</p>
+                <p className="text-xs text-muted-foreground">
+                  {user.email}
+                </p>
+              </div>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="mb-2 w-56">
+            <DropdownMenuItem>
+              <User className="w-4 h-4 mr-2" />
+              {t('sidebar').profile}
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Settings className="w-4 h-4 mr-2" />
+              {t('sidebar').settings}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={signOut}>
+              <LogOut className="w-4 h-4 mr-2" />
+              {t('sidebar').logOut}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    }
+
+    return (
+      <Button onClick={signInWithGoogle} variant="outline" className="w-full">
+        <LogIn className="w-4 h-4 mr-2" />
+        Sign in with Google
+      </Button>
+    )
+  }
 
   return (
     <SidebarProvider>
@@ -89,40 +139,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                 </SidebarMenu>
               </SidebarContent>
               <SidebarFooter>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="justify-start w-full gap-2 p-2 h-14"
-                    >
-                      <Avatar>
-                        {userAvatar && <AvatarImage src={userAvatar.imageUrl} alt="User Avatar" data-ai-hint={userAvatar.imageHint} />}
-                        <AvatarFallback>S</AvatarFallback>
-                      </Avatar>
-                      <div className="text-left group-data-[collapsible=icon]:hidden">
-                        <p className="font-semibold">{t('sidebar').student}</p>
-                        <p className="text-xs text-muted-foreground">
-                          student@email.com
-                        </p>
-                      </div>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="mb-2 w-56">
-                    <DropdownMenuItem>
-                      <User className="w-4 h-4 mr-2" />
-                      {t('sidebar').profile}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Settings className="w-4 h-4 mr-2" />
-                      {t('sidebar').settings}
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                      <LogOut className="w-4 h-4 mr-2" />
-                      {t('sidebar').logOut}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <UserProfile />
               </SidebarFooter>
             </Sidebar>
           )}

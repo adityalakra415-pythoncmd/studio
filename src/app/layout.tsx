@@ -6,6 +6,7 @@ import { MainLayout } from '@/components/layout/main-layout';
 import { ThemeProvider } from '@/components/theme/theme-provider';
 import { LanguageProvider } from '@/context/language-context';
 import { StudyPlanProvider } from '@/context/study-plan-context';
+import { AuthProvider } from '@/context/auth-context';
 
 export const metadata: Metadata = {
   title: 'DragonAI',
@@ -31,13 +32,15 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <LanguageProvider>
-            <StudyPlanProvider>
-              <MainLayout>
-                {children}
-              </MainLayout>
-            </StudyPlanProvider>
-          </LanguageProvider>
+          <AuthProvider>
+            <LanguageProvider>
+              <StudyPlanProvider>
+                <MainLayout>
+                  {children}
+                </MainLayout>
+              </StudyPlanProvider>
+            </LanguageProvider>
+          </AuthProvider>
           <Toaster />
         </ThemeProvider>
       </body>
