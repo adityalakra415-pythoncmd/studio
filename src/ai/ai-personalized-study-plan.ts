@@ -46,12 +46,13 @@ const prompt = ai.definePrompt({
 
 You will take the course material and generate a detailed, step-by-step study plan.
 Break the material down into logical topics. For each topic, provide a brief summary.
-Return the plan as a JSON array of objects. Each object must have the following properties: "id" (a unique number), "topic" (string), "summary" (string), and "status" (string, defaulting to "not-started").
+
+The final output must be an object with a "studyPlan" property containing a JSON string.
+This JSON string should represent an array of objects. Each object must have the following properties: "id" (a unique number), "topic" (string), "summary" (string), and "status" (string, defaulting to "not-started").
 
 Course Material: {{{courseMaterial}}}
 Quiz Results: {{{quizResults}}}
-
-JSON Study Plan:`,
+`,
 });
 
 const generatePersonalizedStudyPlanFlow = ai.defineFlow(
