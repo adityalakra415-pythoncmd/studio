@@ -9,6 +9,7 @@ import { Search } from 'lucide-react';
 import { quizQuestions as defaultQuizQuestions, QuizQuestion } from '@/lib/placeholder-data';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { generateQuiz } from '@/ai/ai-dynamic-quiz-generation';
 
 export default function QuizzesPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -29,15 +30,7 @@ export default function QuizzesPage() {
       }
       setIsGenerating(true);
       try {
-        const response = await fetch('/api/generate-quiz', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: `A quiz about ${topic}` }),
-        });
-        if (!response.ok) {
-          throw new Error('Failed to generate quiz');
-        }
-        const result = await response.json();
+        const result = await generateQuiz({ content: `A quiz about ${topic}` });
         
         let parsedQuizData;
         try {
@@ -52,14 +45,23 @@ export default function QuizzesPage() {
           });
         }
         
-        // The AI might return an array directly, or an object with a "questions" property
-        const newQuiz = Array.isArray(parsedQuizData) ? parsedQuizData : parsedQuizData.questions || [];
+        const newQuiz = Array.isArray(parsedQuizData) ? parsedQuizData : (parsedQuizData.questions || []);
         
-        setFilteredQuizzes(newQuiz);
-        toast({
-          title: "Quiz Generated!",
-          description: `A new quiz on "${topic}" has been created for you.`,
-        });
+        if (Array.isArray(newQuiz) && newQuiz.length > 0) {
+            setFilteredQuizzes(newQuiz);
+            toast({
+              title: "Quiz Generated!",
+              description: `A new quiz on "${topic}" has been created for you.`,
+            });
+        } else {
+             toast({
+                title: "Quiz Generation Failed",
+                description: "The AI returned an empty or invalid quiz. Please try again.",
+                variant: "destructive",
+            });
+            setFilteredQuizzes([]);
+        }
+
       } catch (error) {
         console.error("Quiz generation failed:", error);
         toast({

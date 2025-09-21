@@ -18,6 +18,7 @@ import { Bot, User, Loader } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { askAi } from "@/ai/flows/ai-ask-ai";
 
 type Message = {
   role: 'user' | 'assistant';
@@ -49,15 +50,7 @@ export function AskAi() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/ask-ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question, history: newMessages.slice(0, -1) }),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to get answer from AI');
-      }
-      const result = await response.json();
+      const result = await askAi({ question, history: newMessages.slice(0, -1) });
       setMessages([...newMessages, { role: 'assistant', content: result.answer }]);
     } catch (error) {
       console.error("AI request failed:", error);

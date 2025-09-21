@@ -16,6 +16,8 @@ import { useStudyPlan } from "@/context/study-plan-context";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { QuizSection } from "@/components/dashboard/quiz-section";
 import { QuizQuestion, StudyPlanItem } from "@/lib/placeholder-data";
+import { askAi } from "@/ai/flows/ai-ask-ai";
+import { generateQuiz } from "@/ai/ai-dynamic-quiz-generation";
 
 type Message = {
   role: 'user' | 'assistant';
@@ -80,18 +82,10 @@ export default function StudyTopicPage() {
       const historyForApi = [
         { role: 'assistant', content: `We are studying the topic: ${topic.topic}. The summary is: ${topic.summary}` },
         ...currentMessages.slice(1).map(m => ({ role: m.role, content: m.content.replace(/<[^>]*>?/gm, '') })) // remove html for history
-      ];
+      ] as any[];
 
-      const response = await fetch('/api/ask-ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: question, history: historyForApi }),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to get answer from AI.');
-      }
-      const result = await response.json();
-
+      const result = await askAi({ question: question, history: historyForApi });
+      
       setMessages([...currentMessages, { role: 'assistant', content: result.answer }]);
     } catch (error) {
       console.error("AI request failed:", error);
@@ -120,15 +114,7 @@ export default function StudyTopicPage() {
       const conversation = messages.map(m => `${m.role}: ${m.content}`).join('\n');
       const quizContent = `Topic: ${topic.topic}\n\nStudy Conversation:\n${conversation}`;
       
-      const response = await fetch('/api/generate-quiz', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: quizContent }),
-        });
-      if (!response.ok) {
-        throw new Error('Failed to generate quiz');
-      }
-      const result = await response.json();
+      const result = await generateQuiz({ content: quizContent });
 
       const parsedQuiz = JSON.parse(result.quiz);
       const questions = Array.isArray(parsedQuiz) ? parsedQuiz : parsedQuiz.questions || [];

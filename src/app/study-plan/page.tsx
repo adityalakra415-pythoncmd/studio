@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useStudyPlan } from '@/context/study-plan-context';
 import { useToast } from '@/hooks/use-toast';
 import { StudyPlanItem } from '@/lib/placeholder-data';
+import { generatePersonalizedStudyPlan } from '@/ai/ai-personalized-study-plan';
 
 
 export default function StudyPlanPage() {
@@ -15,19 +16,11 @@ export default function StudyPlanPage() {
 
     const handleGeneratePlan = async (topic: string) => {
         try {
-            const response = await fetch('/api/generate-study-plan', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    courseMaterial: `A study plan about ${topic}`,
-                    quizResults: "No quiz results yet. Generate a beginner-friendly plan.",
-                }),
+            const planResult = await generatePersonalizedStudyPlan({
+                courseMaterial: `A study plan about ${topic}`,
+                quizResults: "No quiz results yet. Generate a beginner-friendly plan.",
             });
-             if (!response.ok) {
-                throw new Error('Failed to generate study plan');
-            }
-            const planResult = await response.json();
-
+            
             const parsedPlan: StudyPlanItem[] = JSON.parse(planResult.studyPlan);
             addTopics(parsedPlan);
 
