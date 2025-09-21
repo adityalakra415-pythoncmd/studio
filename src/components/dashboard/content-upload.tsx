@@ -14,12 +14,13 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link, UploadCloud, FileText } from "lucide-react";
+import { Link, UploadCloud, FileText, Image as ImageIcon } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/use-translation";
 import { summarizeContent } from "@/ai/flows/ai-summarize-content";
 import { generatePersonalizedStudyPlan } from "@/ai/ai-personalized-study-plan";
+import { extractTextFromImage } from "@/ai/flows/ai-extract-text-from-image";
 import { useStudyPlan } from "@/context/study-plan-context";
 
 export function ContentUpload() {
@@ -43,6 +44,7 @@ export function ContentUpload() {
     multiple: false,
     accept: {
       'text/*': ['.txt', '.md', '.json'],
+      'image/*': ['.jpeg', '.jpg', '.png'],
     }
   });
   
@@ -104,7 +106,20 @@ export function ContentUpload() {
     const reader = new FileReader();
     reader.onload = async (event) => {
         if (event.target && typeof event.target.result === 'string') {
-            await processContent(event.target.result);
+            if (file.type.startsWith('image/')) {
+                // It's an image, use OCR flow
+                try {
+                    const ocrResult = await extractTextFromImage({ imageDataUri: event.target.result });
+                    await processContent(ocrResult.extractedText);
+                } catch (error) {
+                    console.error("OCR failed:", error);
+                    toast({ title: "Error", description: "Could not extract text from image.", variant: "destructive"});
+                    setIsProcessing(false);
+                }
+            } else {
+                // It's a text file
+                await processContent(event.target.result);
+            }
         } else {
             toast({ title: "Error", description: "Could not read file.", variant: "destructive"});
             setIsProcessing(false);
@@ -114,7 +129,12 @@ export function ContentUpload() {
         toast({ title: "Error", description: "Failed to read file.", variant: "destructive"});
         setIsProcessing(false);
     }
-    reader.readAsText(file);
+
+    if (file.type.startsWith('image/')) {
+        reader.readAsDataURL(file); // Read image as Data URL
+    } else {
+        reader.readAsText(file); // Read text file as string
+    }
   };
   
   const handleLinkAnalyze = async () => {
@@ -161,7 +181,7 @@ export function ContentUpload() {
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="link" onValueChange={resetState} className="flex flex-col h-full">
+        <Tabs defaultValue="upload" onValueChange={resetState} className="flex flex-col h-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="upload">
               <UploadCloud className="w-4 h-4 mr-2" />
@@ -180,17 +200,22 @@ export function ContentUpload() {
               <input {...getInputProps()} />
               {file ? (
                 <div className="text-center text-muted-foreground">
-                    <FileText className="w-12 h-12 mx-auto text-muted-foreground/50"/>
+                    {file.type.startsWith('image/') ? <ImageIcon className="w-12 h-12 mx-auto text-muted-foreground/50"/> : <FileText className="w-12 h-12 mx-auto text-muted-foreground/50"/>}
                     <p className="mt-2 text-sm font-medium">{file.name}</p>
                 </div>
               ) : (
                 <>
                   <UploadCloud className="w-12 h-12 text-muted-foreground/50" />
                   <p className="mt-2 text-sm text-center text-muted-foreground">
-                    {isDragActive ? 'Drop the file here...' : dragAndDrop}
+                    {isDragActive ? 'Drop a file here...' : dragAndDrop}
                   </p>
                 </>
               )}
+            </div>
+             <div className="w-full mt-4">
+               <Button className="w-full" onClick={handleFileAnalyze} disabled={isProcessing || !file}>
+                    {isProcessing ? analyzingButton : analyzeContent}
+                </Button>
             </div>
           </TabsContent>
           <TabsContent value="link" className="flex-grow">
@@ -205,6 +230,11 @@ export function ContentUpload() {
                 disabled={isProcessing}
               />
             </div>
+              <div className='w-full mt-4'>
+                <Button className="w-full" onClick={handleLinkAnalyze} disabled={isProcessing || !linkUrl}>
+                    {isProcessing ? analyzingButton : analyzeContent}
+                </Button>
+            </div>
           </TabsContent>
            {(isProcessing || isComplete) && (
             <div className="mt-4 space-y-2">
@@ -218,28 +248,10 @@ export function ContentUpload() {
         </Tabs>
       </CardContent>
       <CardFooter>
-        {isComplete ? (
+        {isComplete && (
            <Button className="w-full" onClick={resetState}>
             {uploadMore}
           </Button>
-        ) : (
-          <div className='w-full'>
-              {(() => {
-                const activeTab = document.querySelector('[data-state="active"]')?.getAttribute('data-value');
-                if (activeTab === 'upload') {
-                  return (
-                    <Button className="w-full" onClick={handleFileAnalyze} disabled={isProcessing || !file}>
-                        {isProcessing ? analyzingButton : analyzeContent}
-                    </Button>
-                  )
-                }
-                return (
-                  <Button className="w-full" onClick={handleLinkAnalyze} disabled={isProcessing || !linkUrl}>
-                      {isProcessing ? analyzingButton : analyzeContent}
-                  </Button>
-                )
-              })()}
-          </div>
         )}
       </CardFooter>
     </Card>

@@ -7,3 +7,4 @@ import '@/ai/flows/ai-adaptive-feedback-loop.ts';
 import '@/ai/flows/ai-translate-text.ts';
 import '@/ai/flows/ai-live-translate.ts';
 import '@/ai/flows/ai-ask-ai.ts';
+import '@/ai/flows/ai-extract-text-from-image.ts';
