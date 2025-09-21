@@ -38,9 +38,14 @@ export default function QuizzesPage() {
           throw new Error('Failed to generate quiz');
         }
         const result = await response.json();
-        const parsedQuiz = JSON.parse(result.quiz);
-        // The AI might return an object with a "questions" property, or an array directly
+        
+        let parsedQuiz = JSON.parse(result.quiz);
+        if (typeof parsedQuiz.questions === 'string') {
+          parsedQuiz = JSON.parse(parsedQuiz.questions);
+        }
+        
         const newQuiz = Array.isArray(parsedQuiz) ? parsedQuiz : parsedQuiz.questions || [];
+        
         setFilteredQuizzes(newQuiz);
         toast({
           title: "Quiz Generated!",
