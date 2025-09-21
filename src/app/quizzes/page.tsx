@@ -39,12 +39,21 @@ export default function QuizzesPage() {
         }
         const result = await response.json();
         
-        let parsedQuiz = JSON.parse(result.quiz);
-        if (typeof parsedQuiz.questions === 'string') {
-          parsedQuiz = JSON.parse(parsedQuiz.questions);
+        let parsedQuizData;
+        try {
+          parsedQuizData = JSON.parse(result.quiz);
+        } catch(e) {
+          parsedQuizData = [];
+          console.error("Failed to parse quiz JSON:", e);
+          toast({
+            title: "Quiz Parsing Failed",
+            description: "The generated quiz data was not in the correct format.",
+            variant: "destructive",
+          });
         }
         
-        const newQuiz = Array.isArray(parsedQuiz) ? parsedQuiz : parsedQuiz.questions || [];
+        // The AI might return an array directly, or an object with a "questions" property
+        const newQuiz = Array.isArray(parsedQuizData) ? parsedQuizData : parsedQuizData.questions || [];
         
         setFilteredQuizzes(newQuiz);
         toast({

@@ -49,7 +49,7 @@ Based on this information, you will adjust the study plan and provide guidance o
 
 Student ID: {{{studentId}}}
 Topic: {{{topic}}}
-Quiz Results: {{#each quizResults}}{{{questionId}}}: {{isCorrect}} {{/each}}
+Quiz Results: {{#each quizResults}}{{this.questionId}}: {{this.isCorrect}} {{/each}}
 Current Study Plan: {{#each currentStudyPlan}}{{{this}}} {{/each}}
 Content: {{{content}}}
 
