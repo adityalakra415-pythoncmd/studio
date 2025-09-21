@@ -14,8 +14,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/use-translation";
 import { useStudyPlan } from "@/context/study-plan-context";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { askAi } from "@/ai/flows/ai-ask-ai";
-import { generateQuiz } from "@/ai/ai-dynamic-quiz-generation";
 import { QuizSection } from "@/components/dashboard/quiz-section";
 import { QuizQuestion, StudyPlanItem } from "@/lib/placeholder-data";
 
@@ -40,15 +38,16 @@ export default function StudyTopicPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
   const [generatedQuiz, setGeneratedQuiz] = useState<QuizQuestion[] | null>(null);
-
+  
   useEffect(() => {
-    if (topic) {
+    if (topic && messages.length === 0) {
       setMessages([{
         role: 'assistant',
         content: `Hello! Let's dive into **${topic.topic}**. What would you like to know? Ask me anything to prepare for your quiz.`
       }]);
     }
-  }, [topic]);
+  }, [topic, messages.length]);
+
 
   if (!topic) {
     return (
@@ -69,20 +68,28 @@ export default function StudyTopicPage() {
   const handleAsk = async () => {
     if (!question.trim()) return;
 
-    const newMessages: Message[] = [...messages, { role: 'user', content: question }];
+    const userMessage: Message = { role: 'user', content: question };
+    const newMessages: Message[] = [...messages, userMessage];
     setMessages(newMessages);
     setQuestion("");
     setIsLoading(true);
 
     try {
-      // The history should include the context message and the rest of the conversation
-      const result = await askAi({
-        question,
-        history: [
-          { role: 'assistant', content: `We are studying the topic: ${topic.topic}. The summary is: ${topic.summary}` },
-          ...newMessages.slice(1) // Remove initial prompt from history to avoid duplication
-        ]
+      const historyForApi = [
+        { role: 'assistant', content: `We are studying the topic: ${topic.topic}. The summary is: ${topic.summary}` },
+        ...newMessages.slice(1).map(m => ({ role: m.role, content: m.content.replace(/<[^>]*>?/gm, '') })) // remove html for history
+      ];
+
+      const response = await fetch('/api/ask-ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: question, history: historyForApi }),
       });
+      if (!response.ok) {
+        throw new Error('Failed to get answer from AI.');
+      }
+      const result = await response.json();
+
       setMessages([...newMessages, { role: 'assistant', content: result.answer }]);
     } catch (error) {
       console.error("AI request failed:", error);
@@ -91,7 +98,7 @@ export default function StudyTopicPage() {
         description: "Could not get an answer from the AI.",
         variant: "destructive",
       });
-      setMessages(newMessages); 
+      setMessages(messages); // Revert to previous state
     } finally {
       setIsLoading(false);
     }
@@ -111,7 +118,16 @@ export default function StudyTopicPage() {
       const conversation = messages.map(m => `${m.role}: ${m.content}`).join('\n');
       const quizContent = `Topic: ${topic.topic}\n\nStudy Conversation:\n${conversation}`;
       
-      const result = await generateQuiz({ content: quizContent });
+      const response = await fetch('/api/generate-quiz', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: quizContent }),
+        });
+      if (!response.ok) {
+        throw new Error('Failed to generate quiz');
+      }
+      const result = await response.json();
+
       const parsedQuiz = JSON.parse(result.quiz);
       const questions = Array.isArray(parsedQuiz) ? parsedQuiz : parsedQuiz.questions || [];
 

@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/use-translation";
-import { askAi } from "@/ai/flows/ai-ask-ai";
 import { Bot, User, Loader } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
@@ -50,7 +49,15 @@ export function AskAi() {
     setIsLoading(true);
 
     try {
-      const result = await askAi({ question, history: newMessages.slice(0, -1) });
+      const response = await fetch('/api/ask-ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question, history: newMessages.slice(0, -1) }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to get answer from AI');
+      }
+      const result = await response.json();
       setMessages([...newMessages, { role: 'assistant', content: result.answer }]);
     } catch (error) {
       console.error("AI request failed:", error);
@@ -59,7 +66,7 @@ export function AskAi() {
         description: "Could not get an answer from the AI.",
         variant: "destructive",
       });
-      setMessages(newMessages); // Revert to messages before AI response
+      setMessages(messages); // Revert to previous state
     } finally {
       setIsLoading(false);
     }

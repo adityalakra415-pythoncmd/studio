@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { quizQuestions as defaultQuizQuestions, QuizQuestion } from '@/lib/placeholder-data';
-import { generateQuiz } from '@/ai/ai-dynamic-quiz-generation';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 
@@ -30,7 +29,15 @@ export default function QuizzesPage() {
       }
       setIsGenerating(true);
       try {
-        const result = await generateQuiz({ content: `A quiz about ${topic}` });
+        const response = await fetch('/api/generate-quiz', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: `A quiz about ${topic}` }),
+        });
+        if (!response.ok) {
+          throw new Error('Failed to generate quiz');
+        }
+        const result = await response.json();
         const parsedQuiz = JSON.parse(result.quiz);
         // The AI might return an object with a "questions" property, or an array directly
         const newQuiz = Array.isArray(parsedQuiz) ? parsedQuiz : parsedQuiz.questions || [];

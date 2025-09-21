@@ -3,7 +3,6 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { liveTranslate } from "@/ai/flows/ai-live-translate";
 import { studyPlanItems, quizQuestions, progressData } from "@/lib/placeholder-data";
 import { staticText } from "@/lib/static-text";
 
@@ -41,7 +40,16 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         progressData: progressDataTopics,
       };
       
-      const result = await liveTranslate({ content: JSON.stringify(contentToTranslate), targetLanguage: language });
+      const response = await fetch('/api/live-translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: JSON.stringify(contentToTranslate), targetLanguage: language }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to translate content');
+      }
+
+      const result = await response.json();
       const translated = JSON.parse(result.translatedContent);
       
       const newTranslations: any = {

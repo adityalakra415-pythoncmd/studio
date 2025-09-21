@@ -18,10 +18,21 @@ import { Link, UploadCloud, FileText, Image as ImageIcon } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/use-translation";
-import { summarizeContent } from "@/ai/flows/ai-summarize-content";
-import { generatePersonalizedStudyPlan } from "@/ai/ai-personalized-study-plan";
-import { extractTextFromImage } from "@/ai/flows/ai-extract-text-from-image";
 import { useStudyPlan } from "@/context/study-plan-context";
+
+async function callApi(endpoint: string, body: object) {
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    const errorBody = await response.text();
+    console.error(`API call to ${endpoint} failed with status ${response.status}:`, errorBody);
+    throw new Error(`Failed API call to ${endpoint}`);
+  }
+  return response.json();
+}
 
 export function ContentUpload() {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -52,11 +63,11 @@ export function ContentUpload() {
      try {
       // Simulate progress for summarization
       setProgress(30);
-      const summaryResult = await summarizeContent({ content });
+      const summaryResult = await callApi('/api/summarize-content', { content });
       setProgress(60);
 
       // Generate study plan
-      const planResult = await generatePersonalizedStudyPlan({
+      const planResult = await callApi('/api/generate-study-plan', {
         courseMaterial: summaryResult.summary,
         quizResults: "No quiz results yet. Generate a beginner-friendly plan.",
       });
@@ -109,7 +120,7 @@ export function ContentUpload() {
             if (file.type.startsWith('image/')) {
                 // It's an image, use OCR flow
                 try {
-                    const ocrResult = await extractTextFromImage({ imageDataUri: event.target.result });
+                    const ocrResult = await callApi('/api/extract-text-from-image', { imageDataUri: event.target.result });
                     await processContent(ocrResult.extractedText);
                 } catch (error) {
                     console.error("OCR failed:", error);
