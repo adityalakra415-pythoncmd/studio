@@ -161,7 +161,7 @@ export function ContentUpload() {
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="link" onValueChange={resetState}>
+        <Tabs defaultValue="link" onValueChange={resetState} className="flex flex-col h-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="upload">
               <UploadCloud className="w-4 h-4 mr-2" />
@@ -172,10 +172,10 @@ export function ContentUpload() {
               {linkTab}
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="upload">
+          <TabsContent value="upload" className="flex-grow">
             <div 
               {...getRootProps()} 
-              className={`flex flex-col items-center justify-center p-6 mt-2 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${isDragActive ? 'border-primary bg-primary/10' : 'border-muted-foreground/20'}`}
+              className={`flex flex-col items-center justify-center p-6 mt-2 border-2 border-dashed rounded-lg cursor-pointer transition-colors h-full ${isDragActive ? 'border-primary bg-primary/10' : 'border-muted-foreground/20'}`}
             >
               <input {...getInputProps()} />
               {file ? (
@@ -193,8 +193,8 @@ export function ContentUpload() {
               )}
             </div>
           </TabsContent>
-          <TabsContent value="link">
-            <div className="flex flex-col p-6 mt-2 border-2 border-dashed rounded-lg border-muted-foreground/20">
+          <TabsContent value="link" className="flex-grow">
+            <div className="flex flex-col justify-center p-6 mt-2 border-2 border-dashed rounded-lg border-muted-foreground/20 h-full">
               <p className="mb-4 text-sm text-center text-muted-foreground">
                 {pasteLink}
               </p>
@@ -206,16 +206,16 @@ export function ContentUpload() {
               />
             </div>
           </TabsContent>
+           {(isProcessing || isComplete) && (
+            <div className="mt-4 space-y-2">
+              <Progress value={progress} />
+              <p className="text-sm text-center text-muted-foreground">
+                {isProcessing && `${analyzing} ${Math.round(progress)}%`}
+                {isComplete && analysisComplete}
+              </p>
+            </div>
+          )}
         </Tabs>
-        {(isProcessing || isComplete) && (
-          <div className="mt-4 space-y-2">
-            <Progress value={progress} />
-            <p className="text-sm text-center text-muted-foreground">
-              {isProcessing && `${analyzing} ${Math.round(progress)}%`}
-              {isComplete && analysisComplete}
-            </p>
-          </div>
-        )}
       </CardContent>
       <CardFooter>
         {isComplete ? (
@@ -223,22 +223,25 @@ export function ContentUpload() {
             {uploadMore}
           </Button>
         ) : (
-          <Tabs defaultValue="link">
-              <TabsContent value="upload">
-                 <Button className="w-full" onClick={handleFileAnalyze} disabled={isProcessing || !file}>
-                    {isProcessing ? analyzingButton : analyzeContent}
-                </Button>
-              </TabsContent>
-              <TabsContent value="link">
-                <Button className="w-full" onClick={handleLinkAnalyze} disabled={isProcessing || !linkUrl}>
-                    {isProcessing ? analyzingButton : analyzeContent}
-                </Button>
-              </TabsContent>
-          </Tabs>
+          <div className='w-full'>
+              {(() => {
+                const activeTab = document.querySelector('[data-state="active"]')?.getAttribute('data-value');
+                if (activeTab === 'upload') {
+                  return (
+                    <Button className="w-full" onClick={handleFileAnalyze} disabled={isProcessing || !file}>
+                        {isProcessing ? analyzingButton : analyzeContent}
+                    </Button>
+                  )
+                }
+                return (
+                  <Button className="w-full" onClick={handleLinkAnalyze} disabled={isProcessing || !linkUrl}>
+                      {isProcessing ? analyzingButton : analyzeContent}
+                  </Button>
+                )
+              })()}
+          </div>
         )}
       </CardFooter>
     </Card>
   );
 }
-
-    
