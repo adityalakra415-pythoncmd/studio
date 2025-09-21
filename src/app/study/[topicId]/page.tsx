@@ -30,7 +30,7 @@ export default function StudyTopicPage() {
   const { toast } = useToast();
   const { plan: studyPlanItems, updateTopicStatus } = useStudyPlan();
 
-  const topic = studyPlanItems.find(item => item.id.toString() === topicId);
+  const [topic, setTopic] = useState<StudyPlanItem | undefined>(undefined);
   const userAvatar = PlaceHolderImages.find((p) => p.id === 'user-avatar');
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -40,13 +40,15 @@ export default function StudyTopicPage() {
   const [generatedQuiz, setGeneratedQuiz] = useState<QuizQuestion[] | null>(null);
   
   useEffect(() => {
-    if (topic && messages.length === 0) {
+    const currentTopic = studyPlanItems.find(item => item.id.toString() === topicId);
+    setTopic(currentTopic);
+    if (currentTopic && messages.length === 0) {
       setMessages([{
         role: 'assistant',
-        content: `Hello! Let's dive into **${topic.topic}**. What would you like to know? Ask me anything to prepare for your quiz.`
+        content: `Hello! Let's dive into **${currentTopic.topic}**. What would you like to know? Ask me anything to prepare for your quiz.`
       }]);
     }
-  }, [topic, messages.length]);
+  }, [topicId, studyPlanItems, messages.length]);
 
 
   if (!topic) {
@@ -69,15 +71,15 @@ export default function StudyTopicPage() {
     if (!question.trim()) return;
 
     const userMessage: Message = { role: 'user', content: question };
-    const newMessages: Message[] = [...messages, userMessage];
-    setMessages(newMessages);
+    const currentMessages: Message[] = [...messages, userMessage];
+    setMessages(currentMessages);
     setQuestion("");
     setIsLoading(true);
 
     try {
       const historyForApi = [
         { role: 'assistant', content: `We are studying the topic: ${topic.topic}. The summary is: ${topic.summary}` },
-        ...newMessages.slice(1).map(m => ({ role: m.role, content: m.content.replace(/<[^>]*>?/gm, '') })) // remove html for history
+        ...currentMessages.slice(1).map(m => ({ role: m.role, content: m.content.replace(/<[^>]*>?/gm, '') })) // remove html for history
       ];
 
       const response = await fetch('/api/ask-ai', {
@@ -90,7 +92,7 @@ export default function StudyTopicPage() {
       }
       const result = await response.json();
 
-      setMessages([...newMessages, { role: 'assistant', content: result.answer }]);
+      setMessages([...currentMessages, { role: 'assistant', content: result.answer }]);
     } catch (error) {
       console.error("AI request failed:", error);
       toast({

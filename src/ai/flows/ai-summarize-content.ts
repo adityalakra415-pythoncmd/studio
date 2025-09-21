@@ -23,7 +23,6 @@ const SummarizeContentInputSchema = z.object({
 // Define the output schema for the summarizeContent flow
 const SummarizeContentOutputSchema = z.object({
   summary: z.string().describe('A concise summary of the course material.'),
-  progress: z.string().describe('Indicates the progress of the summarization process'),
 });
 
 export type SummarizeContentInput = z.infer<typeof SummarizeContentInputSchema>;
@@ -56,9 +55,6 @@ const summarizeContentFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await summarizeContentPrompt(input);
-    return {
-      ...output!,
-      progress: 'Content summarization completed.',
-    };
+    return output!;
   }
 );
